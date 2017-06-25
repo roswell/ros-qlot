@@ -1,0 +1,33 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#| qlot integration.
+exec ros -Q -m ros-qlot -L sbcl-bin -- $0 "$@"
+|#
+(progn ;;init forms
+  (ros:ensure-asdf)
+  #+quicklisp (ql:quickload '(:qlot :qlot/install :roswell.init.qlot) :silent t)
+  )
+
+(defpackage :ros.script.ros-qlot.3707365566
+  (:use :cl :roswell.init.qlot))
+(in-package :ros.script.ros-qlot.3707365566)
+
+(defun main (&optional $1 &rest argv)
+  (declare (ignorable argv))
+  (let ((ql-home ".roswell/lisp/quicklisp/"))
+    (unless (probe-file ql-home)
+      (format *error-output* "do 'ros init qlot' first.~%")
+      (ros:quit 1))
+    (handler-case
+        (cond ((equal "install" $1)
+               (qlot:install :quicklisp-home ql-home))
+              ((equal "update" $1)
+               (qlot:update :quicklisp-home ql-home))
+              ((equal "bundle" $1)
+               (qlot:bundle))
+              (t (format *error-output*
+                         "~&Usage: ~A [install | update | bundle]~%"
+                         (file-namestring *load-pathname*))
+                 (ros:quit 1)))
+      #+sbcl (sb-sys:interactive-interrupt () (uiop:quit -1 nil)))))
+;;; vim: set ft=lisp lisp:
